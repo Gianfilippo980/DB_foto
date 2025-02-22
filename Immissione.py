@@ -6,13 +6,13 @@ import os
 # Connessione al database
 conn = sqlite3.connect('metadati.db')
 c = conn.cursor()
-campi_db = [row[1] for row in c.execute("PRAGMA table_info(metadati)")]
+campi_db : list[str] = [row[1] for row in c.execute("PRAGMA table_info(metadati)")]
 
 def inserisci_metadati(log : dict) -> None:
     """Inserisce i metadati di un'immagine nella tabella metadati e sposta il file nella cartella immagini"""
     # Controllo che i campi siano presenti nel dizionario
     for campo in campi_db:
-        if campo not in log:
+        if campo not in log and campo != 'id':
             raise ValueError(f"Il campo {campo} non è presente nel dizionario")
     
     # Inserimento dei metadati
@@ -20,17 +20,17 @@ def inserisci_metadati(log : dict) -> None:
     conn.commit()
     
 # Spostamento del file
-def sposta_file(nome_file : str) -> None:
+def sposta_file(path_file) -> None:
     """Sposta il file nella cartella immagini"""
     if not os.path.exists('immagini'):
         os.mkdir('immagini')
-    os.rename(nome_file, os.path.join('immagini', nome_file))
-    
+    os.rename(path_file, os.path.join('immagini', path_file.basename()))
+
 if __name__ == '__main__':
     print ("Si presume che il file immagine sia presente nella cartella corrente")
     # Inserimento dei metadati
     log = {}
-    for campo in campi_db:
+    for campo in campi_db[1:]:
         valore = input(f"Inserire il valore per il campo {campo}: ")
         log[campo] = valore
     inserisci_metadati(log)
